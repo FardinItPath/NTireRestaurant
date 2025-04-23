@@ -1,18 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using R.DAL.EntityModel;
+using Common.ViewModel;
 
 namespace R.BAL.Services.Interface
 {
     public interface IMenuService
     {
-        Task<IEnumerable<MenuModel>> GetAllMenusAsync(); // Renamed from GetAllMenuItemsAsync
-        Task<MenuModel> GetMenuByIdAsync(int menuId);
-        Task AddMenuAsync(MenuModel menu); // Renamed from CreateMenuItemAsync
-        Task UpdateMenuAsync(MenuModel menu);
+        Task<IEnumerable<MenuViewModel>> GetAllMenusAsync();
+        Task<MenuViewModel> GetMenuByIdAsync(int menuId);
+        Task AddMenuAsync(MenuViewModel menu);
+        Task<bool> UpdateMenuAsync(int id, MenuViewModel viewModel);
+
         Task DeleteMenuAsync(int menuId);
     }
 }

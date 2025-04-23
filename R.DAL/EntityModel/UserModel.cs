@@ -36,4 +36,5 @@ namespace R.DAL.EntityModel
 
         public virtual RoleModel? Role { get; set; }
     }
+   
 }

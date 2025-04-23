@@ -14,71 +14,100 @@ namespace R.BAL.Services.Implementation
     {
         private readonly IUserRepositories _userRepository;
 
+        public object Role => throw new NotImplementedException();
+
         public UserService(IUserRepositories userRepository)
         {
             _userRepository = userRepository;
         }
-        public object Role => throw new NotImplementedException();
 
         public async Task<UserModel> AuthenticateUser(string username, string password)
         {
             var user = await _userRepository.GetUserByUsername(username);
-            if (user == null)
-            {
-                return null; // User does not exist
-            }
-            if (user.Password == password)
-            {
-                return user;
-            }
-            return null;
+            if (user == null || user.Password != password)
+                return null;
+
+            return user;
         }
 
-        public async Task<List<UserModel>> GetAllUsers()
+        public async Task<List<UserViewModel>> GetAllUsers()
         {
-            return await _userRepository.GetAllUsers();
-
+            var users = await _userRepository.GetAllUsers();
+            return users.Select(MapToViewModel).ToList();
         }
 
-        public async Task<UserModel> GetUserById(int userId)
+        public async Task<UserViewModel> GetUserById(int userId)
         {
-            return await _userRepository.GetUserById(userId);
-
+            var user = await _userRepository.GetUserById(userId);
+            return user == null ? null : MapToViewModel(user);
         }
 
-        public async Task<UserModel> GetUserByUsername(string username)
+        public async Task<UserViewModel> GetUserByUsername(string username)
         {
-            return await _userRepository.GetUserByUsername(username);
-
+            var user = await _userRepository.GetUserByUsername(username);
+            return user == null ? null : MapToViewModel(user);
         }
+
 
         public async Task<bool> IsUsernameExists(string username)
         {
             return await _userRepository.IsUsernameExists(username);
-
         }
 
-        public async Task<bool> RegisterUser(UserModel user)
+        public async Task<bool> RegisterUser(UserViewModel viewModel)
         {
-            if (await IsUsernameExists(user.Username))
-            {
+            if (await IsUsernameExists(viewModel.Username))
                 return false;
-            }
 
-            return await _userRepository.RegisterUser(user);
+            var userModel = MapToEntityModel(viewModel);
+            userModel.CreatedDT = DateTime.UtcNow;
+            userModel.IsActive = true;
+
+            return await _userRepository.RegisterUser(userModel);
         }
+
         public async Task<List<RoleModel>> GetRoles()
         {
             return await _userRepository.GetRoles();
         }
+
         public async Task ResetPassword(ResetPasswordViewModel model)
         {
-            var user = await _userRepository.GetUserByUsername(model.UserName); // Await the async method
+            var user = await _userRepository.GetUserByUsername(model.UserName);
             if (user != null)
             {
-                user.Password = model.NewPassword; // Consider hashing before saving
-                await _userRepository.Update(user); // Make sure this is async
+                user.Password = model.NewPassword; // Consider hashing here
+                await _userRepository.Update(user);
             }
+        }
+
+      
+
+        private UserModel MapToEntityModel(UserViewModel viewModel)
+        {
+            return new UserModel
+            {
+                UserId = viewModel.UserId,
+                Username = viewModel.Username,
+                Password = viewModel.Password,
+                IsActive = viewModel.IsActive,
+                RoleId = viewModel.RoleId,
+                CreatedDT = DateTime.UtcNow,
+                UpdatedDT = null
+            };
+        }
+
+        private UserViewModel MapToViewModel(UserModel user)
+        {
+            return new UserViewModel
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Password = user.Password,
+                IsActive = user.IsActive,
+                RoleId = user.RoleId,
+                //RoleName = user.Role?.RoleName
+            };
         }
     }
 }

@@ -12,13 +12,15 @@ namespace R.DAL.Context
     {
         public RestaurantDbContext(DbContextOptions<RestaurantDbContext> options) : base(options) { }
 
-        public DbSet<CategoryModel> Category { get; set; }
+        public DbSet<CategoryModel> Category { get; set; } 
         public DbSet<MenuModel> Menu { get; set; }
         public DbSet<RoleModel> Role { get; set; }
         public DbSet<UserModel> Users { get; set; }
+        //public DbSet<ForgotPasswordRequest> ForgotPasswordRequest { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
             //base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<RoleModel>().HasData(
                 new RoleModel { RoleId = 1, RoleName = "Admin" },

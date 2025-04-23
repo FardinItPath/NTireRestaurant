@@ -31,5 +31,7 @@ namespace Common.ViewModel
 
         //public string? CategoryName { get; set; }
         //public IEnumerable<CategoryModel>? Categories { get; set; }
+        public DateTime? UpdatedDT { get; set; }
+        public int? UpdatedBy { get; set; }
     }
 }

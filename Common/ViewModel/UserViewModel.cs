@@ -25,6 +25,5 @@ namespace Common.ViewModel
         [Required(ErrorMessage = "Role selection is required.")]
         public int RoleId { get; set; }
 
-        public string? RoleName { get; set; }
     }
 }
