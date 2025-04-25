@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using R.DAL.EntityModel;
+using Common.Enum;
 
 namespace R.DAL.Context
 {
@@ -16,16 +12,21 @@ namespace R.DAL.Context
         public DbSet<MenuModel> Menu { get; set; }
         public DbSet<RoleModel> Role { get; set; }
         public DbSet<UserModel> Users { get; set; }
+
         //public DbSet<ForgotPasswordRequest> ForgotPasswordRequest { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
             //base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<RoleModel>().HasData(
-                new RoleModel { RoleId = 1, RoleName = "Admin" },
-                new RoleModel { RoleId = 2, RoleName = "User" }
-            );
+            //modelBuilder.Entity<RoleModel>().HasData(
+            //    new RoleModel { RoleId = 1, RoleName = "Admin" },
+            //    new RoleModel { RoleId = 2, RoleName = "User" }
+            //);
+        //    modelBuilder.Entity<RoleModel>().HasData(
+        //               //new RoleModel { RoleId = (int) UserRole.Admin, RoleName = Enum.GetName(UserRole.Admin) },
+        //               //new RoleModel { RoleId = (int) UserRole.User, RoleName = Enum.GetName(UserRole.User) }
+
             modelBuilder.Entity<CategoryModel>().HasData(
                 new CategoryModel { CategoryId = 1, CategoryName = "Appetizers" },
                  new CategoryModel { CategoryId = 2, CategoryName = "Main Course" },

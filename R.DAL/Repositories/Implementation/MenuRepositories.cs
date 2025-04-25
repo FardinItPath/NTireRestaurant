@@ -8,6 +8,7 @@ using R.DAL.Context;
 using R.DAL.EntityModel;
 using R.DAL.Repositories.Interface;
 
+
 namespace R.DAL.Repositories.Implementation
 {
     public class MenuRepositories : IMenuRepositories
@@ -55,6 +56,27 @@ namespace R.DAL.Repositories.Implementation
         {
             return await _context.Menu.AnyAsync(m => m.MenuId == id && m.IsActive);
         }
+        public async Task<IEnumerable<MenuModel>> GetMenusAsync()
+        {
+            // Fetch all active menus (without pagination or filtering)
+            var menus = await _context.Menu
+                .Where(m => m.IsActive)
+                .ToListAsync();
+
+            // Map to MenuModel
+            var menuModels = menus.Select(m => new MenuModel
+            {
+                MenuId = m.MenuId,
+                Name = m.Name,
+                Description = m.Description,
+                Price = m.Price,
+                IsActive = m.IsActive,
+                CategoryId = m.CategoryId
+            }).ToList();
+
+            return menuModels;
+        }
+        public IQueryable<MenuModel> Menus => _context.Menu.Include(m => m.Category);
     }
 }
 

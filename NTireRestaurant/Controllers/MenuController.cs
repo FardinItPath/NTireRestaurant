@@ -1,7 +1,9 @@
-﻿using Common.ViewModel;
+﻿using Common.DTOs;
+using Common.ViewModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using R.BAL.Services.Interface;
+using R.DAL.EntityModel;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -36,7 +38,8 @@ public class MenuController : ControllerBase
 
     // POST: api/menu
     [HttpPost]
-    public async Task<IActionResult> CreateMenu([FromBody] MenuViewModel model)
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> CreateMenu([FromBody] MenuDTOs model)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -46,7 +49,8 @@ public class MenuController : ControllerBase
 
     // PUT: api/menu/5
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateMenu(int id, [FromBody] MenuViewModel model)
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateMenu(int id, [FromBody] MenuDTOs model)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -54,11 +58,12 @@ public class MenuController : ControllerBase
         if (!result)
             return NotFound(new { message = "Menu item not found." });
 
-        return Ok(new { message = "Menu item updated successfully." });
+        return Ok(model);
     }
 
     // DELETE: api/menu/5
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteMenu(int id)
     {
         var menu = await _menuService.GetMenuByIdAsync(id);
@@ -78,4 +83,15 @@ public class MenuController : ControllerBase
 
         return Ok(categories);
     }
+
+   // GET: api/menu/paginated-menu
+   [HttpPost("paginated-menu")]
+    public async Task<ActionResult<PagedResultDTOs<MenuDTOs>>> GetPagedMenus([FromQuery] PaginationParamsDTOs pagination)
+    {
+        var pagedMenu = await _menuService.GetPagedMenu(pagination);
+        return Ok(pagedMenu);
+    }
+
+
+
 }

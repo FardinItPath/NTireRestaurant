@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using R.DAL.EntityModel;
 
+
 namespace R.DAL.Repositories.Interface
 {
     public interface IMenuRepositories
@@ -15,5 +16,9 @@ namespace R.DAL.Repositories.Interface
         Task UpdateMenuAsync(MenuModel menu);
         Task DeleteMenuAsync(int menuId);
         Task<bool> MenuExistsAsync(int id); // Add this line
+        Task<IEnumerable<MenuModel>> GetMenusAsync();
+        IQueryable<MenuModel> Menus { get; }
+
+
     }
 }

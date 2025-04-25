@@ -1,6 +1,9 @@
-﻿using Common.ViewModel;
+﻿using Common.DTOs;
+using Common.ViewModel;
+using Microsoft.EntityFrameworkCore;
 using R.BAL.Services.Interface;
 using R.DAL.EntityModel;
+using R.DAL.Repositories.Implementation;
 using R.DAL.Repositories.Interface;
 
 public class MenuService : IMenuService
@@ -12,19 +15,19 @@ public class MenuService : IMenuService
         _menuRepository = menuRepository;
     }
 
-    public async Task<IEnumerable<MenuViewModel>> GetAllMenusAsync()
+    public async Task<IEnumerable<MenuDTOs>> GetAllMenusAsync()
     {
         var menuEntities = await _menuRepository.GetAllMenusAsync();
         return menuEntities.Select(MapToViewModel).ToList();
     }
 
-    public async Task<MenuViewModel> GetMenuByIdAsync(int id)
+    public async Task<MenuDTOs> GetMenuByIdAsync(int id)
     {
         var menu = await _menuRepository.GetMenuByIdAsync(id);
         return menu == null ? null : MapToViewModel(menu);
     }
 
-    public async Task AddMenuAsync(MenuViewModel viewModel)
+    public async Task AddMenuAsync(MenuDTOs viewModel)
     {
         var entity = MapToEntity(viewModel);
         entity.IsActive = true;
@@ -32,7 +35,7 @@ public class MenuService : IMenuService
         await _menuRepository.AddMenuAsync(entity);
     }
 
-    public async Task<bool> UpdateMenuAsync(int id, MenuViewModel viewModel)
+    public async Task<bool> UpdateMenuAsync(int id, MenuDTOs viewModel)
     {
         var existingEntity = await _menuRepository.GetMenuByIdAsync(id);
         if (existingEntity == null) return false;
@@ -56,9 +59,9 @@ public class MenuService : IMenuService
     }
 
     // Manual Mappings
-    private MenuViewModel MapToViewModel(MenuModel menu)
+    private MenuDTOs MapToViewModel(MenuModel menu)
     {
-        return new MenuViewModel
+        return new MenuDTOs
         {
             MenuId = menu.MenuId,
             Name = menu.Name,
@@ -69,7 +72,7 @@ public class MenuService : IMenuService
         };
     }
 
-    private MenuModel MapToEntity(MenuViewModel viewModel)
+    private MenuModel MapToEntity(MenuDTOs viewModel)
     {
         return new MenuModel
         {
@@ -81,4 +84,51 @@ public class MenuService : IMenuService
             CategoryId = viewModel.CategoryId
         };
     }
+    
+   
+
+    public async Task<PagedResultDTOs<MenuDTOs>> GetPagedMenu(PaginationParamsDTOs pagination)
+    {
+        var query = _menuRepository.Menus
+            .Where(m => m.IsActive)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(pagination.SearchTerm))
+        {
+            string search = pagination.SearchTerm.ToLower();
+            query = query.Where(m =>
+                m.Name.ToLower().Contains(search) ||
+                m.Description.ToLower().Contains(search) ||
+                m.Price.ToString().Contains(search) ||
+                m.Category.CategoryName.ToLower().Contains(search)
+            );
+        }
+
+        int totalRecords = await query.CountAsync();
+        int totalPages = (int)Math.Ceiling((double)totalRecords / pagination.PageSize);
+
+        var menus = await query
+            .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+            .Take(pagination.PageSize)
+            .Select(m => new MenuDTOs
+            {
+                MenuId = m.MenuId,
+                Name = m.Name,
+                Description = m.Description,
+                Price = m.Price,
+                CategoryId = m.CategoryId,
+                IsActive = m.IsActive
+            })
+            .ToListAsync();
+
+        return new PagedResultDTOs<MenuDTOs>
+        {
+            PageNumber = pagination.PageNumber,
+            PageSize = pagination.PageSize,
+            TotalRecords = totalRecords,
+            TotalPages = totalPages,
+            Items = menus
+        };
+    }
+
 }

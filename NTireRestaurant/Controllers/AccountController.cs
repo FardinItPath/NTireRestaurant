@@ -8,6 +8,8 @@ using R.DAL.Context;
 using R.DAL.EntityModel;
 using Common.ViewModel;
 using Common.Helper;
+using Microsoft.EntityFrameworkCore;
+using R.BAL.Services.Interface;
 
 namespace NTireRestaurant.Controllers
 {
@@ -18,76 +20,112 @@ namespace NTireRestaurant.Controllers
         private readonly RestaurantDbContext _context;
         private readonly IConfiguration _config;
         private readonly JWTService _jwtService;
+        private readonly IUserService _userService;
 
-        public AccountController(RestaurantDbContext context, IConfiguration config, JWTService jwtService)
+        public AccountController(RestaurantDbContext context, IConfiguration config, JWTService jwtService,IUserService userService)
         {
             _context = context;
             _config = config;
             _jwtService = jwtService;
+            _userService = userService;
         }
 
         [HttpPost("register")]
-        public IActionResult Register([FromBody] UserViewModel userViewModel)
+        public async Task<IActionResult> Register([FromBody] UserDTOs userViewModel)
         {
-            if (_context.Users.Any(u => u.Username == userViewModel.Username))
-                return BadRequest("Username already exists.");
 
-            var user = new UserModel
+            try
             {
-                Username = userViewModel.Username,
-                Password = PasswordHasher.HashPassword(userViewModel.Password),
-                RoleId = userViewModel.RoleId,
-                CreatedDT = DateTime.UtcNow
-            };
+                var usernameExists = await _userService.IsUsernameExists(userViewModel.Username);
+                if (usernameExists)
+                {
+                    return BadRequest("Username already exists. Please choose a different username.");
+                }
 
-            _context.Users.Add(user);
-            _context.SaveChanges();
+                var response = await _userService.RegisterUser(userViewModel);
 
-            return Ok("Registration successful.");
+                if (!response)
+                {
+                    return StatusCode(500, "An error occurred while registering the user. Please try again later.");
+                }
+
+                return Ok("Registered successful.");
+            }
+            catch (DbUpdateException dbEx)
+            {
+                Console.WriteLine($"Error: {dbEx.InnerException?.Message}");
+
+                return StatusCode(500, "Database update failed. Please try again later.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, "An internal error occurred. Please try again later.");
+            }
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] UserViewModel userViewModel)
+        public async Task<IActionResult> LoginAsync([FromBody] UserDTOs userViewModel)
         {
-            var hashedPassword = PasswordHasher.HashPassword(userViewModel.Password);
-            var dbUser = _context.Users.FirstOrDefault(u =>
-                u.Username == userViewModel.Username && u.Password == hashedPassword);
+            try
+            {
+                var dbUser = await _userService.GetUserByUsername(userViewModel.Username);
 
-            if (dbUser == null)
-                return Unauthorized("Invalid username or password.");
+                if (dbUser == null || dbUser.Password != userViewModel.Password) 
+                {
+                    return Unauthorized("Invalid username or password.");
+                }
 
-            var token = _jwtService.GenerateToken(dbUser.Username, dbUser.RoleId.ToString());
-            return Ok(new { Token = token, Username = dbUser.Username });
+                // Generate token
+                var token = _jwtService.GenerateToken(dbUser.Username, dbUser.RoleId.ToString());
+                return Ok(new { Token = token, Username = dbUser.Username });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, "An internal error occurred. Please try again later.");
+            }
         }
 
         [HttpPost("forgot-password")]
-        public IActionResult ForgotPassword([FromBody] ForgotPasswordViewModel request)
+        public async Task<IActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordDTOs request)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Username == request.Username);
+            try
+            {
+                var user = await _userService.GetUserByUsername(request.Username);
 
-            if (user == null)
-                return NotFound("Username not found.");
+                if (user == null)
+                    return NotFound("Username not found.");
 
-            return Ok("Username verified. Proceed to reset your password.");
+                return Ok("Username verified. Proceed to reset your password.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, "An internal error occurred. Please try again later.");
+            }
         }
 
         [HttpPost("reset-password")]
-        public IActionResult ResetPassword([FromBody] ResetPasswordViewModel request)
+        public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetPasswordDTOs request)
         {
-            if (request.NewPassword != request.ConfirmPassword)
-                return BadRequest("Passwords do not match.");
+            try
+            {
+                if (request.NewPassword != request.ConfirmPassword)
+                    return BadRequest("Passwords do not match.");
 
-            var user = _context.Users.FirstOrDefault(u => u.Username == request.UserName);
+                var user = await _userService.GetUserByUsername(request.UserName);
 
-            if (user == null)
-                return NotFound("User not found.");
+                if (user == null)
+                    return NotFound("User not found.");
 
-            user.Password = PasswordHasher.HashPassword(request.NewPassword);
-            user.UpdatedDT = DateTime.UtcNow;
-
-            _context.SaveChanges();
-
-            return Ok("Password has been successfully reset.");
+                return Ok("Password has been successfully reset.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, "An internal error occurred. Please try again later.");
+            }
         }
     }
 }

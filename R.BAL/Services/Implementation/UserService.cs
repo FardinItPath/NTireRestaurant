@@ -14,7 +14,7 @@ namespace R.BAL.Services.Implementation
     {
         private readonly IUserRepositories _userRepository;
 
-        public object Role => throw new NotImplementedException();
+  
 
         public UserService(IUserRepositories userRepository)
         {
@@ -30,19 +30,19 @@ namespace R.BAL.Services.Implementation
             return user;
         }
 
-        public async Task<List<UserViewModel>> GetAllUsers()
+        public async Task<List<UserDTOs>> GetAllUsers()
         {
             var users = await _userRepository.GetAllUsers();
             return users.Select(MapToViewModel).ToList();
         }
 
-        public async Task<UserViewModel> GetUserById(int userId)
+        public async Task<UserDTOs> GetUserById(int userId)
         {
             var user = await _userRepository.GetUserById(userId);
             return user == null ? null : MapToViewModel(user);
         }
 
-        public async Task<UserViewModel> GetUserByUsername(string username)
+        public async Task<UserDTOs> GetUserByUsername(string username)
         {
             var user = await _userRepository.GetUserByUsername(username);
             return user == null ? null : MapToViewModel(user);
@@ -54,7 +54,7 @@ namespace R.BAL.Services.Implementation
             return await _userRepository.IsUsernameExists(username);
         }
 
-        public async Task<bool> RegisterUser(UserViewModel viewModel)
+        public async Task<bool> RegisterUser(UserDTOs viewModel)
         {
             if (await IsUsernameExists(viewModel.Username))
                 return false;
@@ -71,7 +71,7 @@ namespace R.BAL.Services.Implementation
             return await _userRepository.GetRoles();
         }
 
-        public async Task ResetPassword(ResetPasswordViewModel model)
+        public async Task ResetPassword(ResetPasswordDTOs model)
         {
             var user = await _userRepository.GetUserByUsername(model.UserName);
             if (user != null)
@@ -83,7 +83,7 @@ namespace R.BAL.Services.Implementation
 
       
 
-        private UserModel MapToEntityModel(UserViewModel viewModel)
+        private UserModel MapToEntityModel(UserDTOs viewModel)
         {
             return new UserModel
             {
@@ -97,9 +97,9 @@ namespace R.BAL.Services.Implementation
             };
         }
 
-        private UserViewModel MapToViewModel(UserModel user)
+        private UserDTOs MapToViewModel(UserModel user)
         {
-            return new UserViewModel
+            return new UserDTOs
             {
                 UserId = user.UserId,
                 Username = user.Username,

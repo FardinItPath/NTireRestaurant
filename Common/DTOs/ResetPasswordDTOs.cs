@@ -2,7 +2,7 @@
 
 namespace Common.ViewModel
 {
-    public class ResetPasswordViewModel
+    public class ResetPasswordDTOs
     {
         [Required]
         [MinLength(6, ErrorMessage = "Password must be at least 6 characters.")]

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Common.ViewModel;
 using R.DAL.EntityModel;
 
 namespace R.DAL.Repositories.Interface
@@ -17,6 +18,5 @@ namespace R.DAL.Repositories.Interface
         Task<List<UserModel>> GetAllUsers();
         Task<List<RoleModel>> GetRoles();
         Task Update(UserModel user);
-
     }
 }

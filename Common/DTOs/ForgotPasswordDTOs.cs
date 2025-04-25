@@ -2,7 +2,7 @@
 
 namespace Common.ViewModel
 {
-    public class ForgotPasswordViewModel
+    public class ForgotPasswordDTOs
     {
         [Required(ErrorMessage = "Username is required.")]
         public string Username { get; set; }

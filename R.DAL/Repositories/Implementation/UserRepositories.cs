@@ -39,14 +39,8 @@ namespace R.DAL.Repositories.Implementation
         public async Task<UserModel> GetUserById(int userId)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
-            //return await _context.Users.FindAsync(userId);
         }
 
-        //public async Task<UserModel> GetUserByUsername(string username)
-        //{
-        //    return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
-
-        //}
         public async Task<UserModel> GetUserByUsername(string username)
         {
             return await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Username == username);

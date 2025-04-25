@@ -10,15 +10,16 @@ namespace R.BAL.Services.Interface
 {
     public interface IUserService
     {
-        object Role { get; }
+     
 
         Task<UserModel> AuthenticateUser(string username, string password);
-        Task<List<UserViewModel>> GetAllUsers();
-        Task<UserViewModel> GetUserById(int userId);
-        Task<UserViewModel> GetUserByUsername(string username); // ✅ Fixed return type
+        Task<List<UserDTOs>> GetAllUsers();
+        Task<UserDTOs> GetUserById(int userId);
+        Task<UserDTOs> GetUserByUsername(string username); 
         Task<bool> IsUsernameExists(string username);
-        Task<bool> RegisterUser(UserViewModel userViewModel);
+        Task<bool> RegisterUser(UserDTOs userViewModel);
         Task<List<RoleModel>> GetRoles();
-        Task ResetPassword(ResetPasswordViewModel model);
+        Task ResetPassword(ResetPasswordDTOs model);
+        //Task<bool> UpdateUser(UserDTOs user);
     }
 }
